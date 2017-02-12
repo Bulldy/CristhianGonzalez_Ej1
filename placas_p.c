@@ -74,7 +74,7 @@ int main(int argc, char **argv){
   
   MPI_Barrier(MPI_COMM_WORLD);
   
-  for(k=0;k<3;k++){
+  for(k=0;k<N;k++){
     for(j=1;j<M;j++){
       if(rank!=size-1){
 	number=u1[col][j];
@@ -139,7 +139,7 @@ int main(int argc, char **argv){
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  //Calculate the potential
+  //Calculate the fields and write to files
   double ex,ey;
   for(j=1;j<M;j++){
     for(i=1;i<col;i++){
