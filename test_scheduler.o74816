@@ -1,8 +1,0 @@
-I am processor 1, and I have columns 128 to 257 
-I am processor 2, and I have columns 256 to 385 
-I am processor 0, and I have columns 0 to 129 
-I am processor 3, and I have columns 384 to 512 
-Empezar a escribir archivos: Proceso 0 
-Empezar a escribir archivos: Proceso 2 
-Empezar a escribir archivos: Proceso 1 
-Empezar a escribir archivos: Proceso 3 
