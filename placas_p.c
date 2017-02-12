@@ -68,13 +68,13 @@ int main(int argc, char **argv){
     }
   }
  
-  // Start of the relaxation method
+  // Start of the relaxation method for the potential
   int k;
   double number;
   
   MPI_Barrier(MPI_COMM_WORLD);
   
-  for(k=0;k<N;k++){
+  for(k=0;k<3;k++){
     for(j=1;j<M;j++){
       if(rank!=size-1){
 	number=u1[col][j];
@@ -94,7 +94,7 @@ int main(int argc, char **argv){
     
     MPI_Barrier(MPI_COMM_WORLD);
 
-    for(i=1;i<col+1;i++){
+    for(i=1;i<col;i++){
       for(j=1;j<M;j++){
 	if(i+start==iu && j>=j1 && j<=j2){
 	  u2[i][j]=-1*V0/2;
@@ -116,14 +116,18 @@ int main(int argc, char **argv){
     MPI_Barrier(MPI_COMM_WORLD);
   }
   
-  //MPI_Barrier(MPI_COMM_WORLD);
   printf("Empezar a escribir archivos: Proceso %d \n",rank);
-  // Write to files
-  FILE *file1;
+  // Write to files the potential
+  FILE *file1,*file2,*file3;
   char buf[10];
-  sprintf(buf, "%d.txt", rank);
-
+  char baf[10];
+  char bef[10];
+  sprintf(buf, "v%d.txt", rank);
+  sprintf(baf, "ex%d.txt", rank);
+  sprintf(bef, "ey%d.txt", rank);
   file1=fopen(buf,"w");
+  file2=fopen(baf,"w");
+  file3=fopen(bef,"w");
 
   for(j=0;j<M;j++){
     for(i=0;i<col+1;i++){
@@ -135,6 +139,21 @@ int main(int argc, char **argv){
 
   MPI_Barrier(MPI_COMM_WORLD);
 
+  //Calculate the potential
+  double ex,ey;
+  for(j=1;j<M;j++){
+    for(i=1;i<col;i++){
+      ex=(-1/(2*h))*(u1[i+1][j]-u1[i-1][j]);
+      ey=(-1/(2*h))*(u1[i][j+1]-u1[i][j-1]);
+      fprintf(file2,"%f ",ex);
+      fprintf(file3,"%f ",ey);
+    }
+    fprintf(file2,"\n");
+    fprintf(file3,"\n");
+  }
+  fclose(file2);
+  fclose(file3);
+  
   // Finalize the MPI environment
   MPI_Finalize();
 

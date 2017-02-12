@@ -1,0 +1,8 @@
+placas.pdf: grafica.py 0.txt 1.txt 2.txt 3.txt
+	python grafica.py
+0.txt 1.txt 2.txt 3.txt: a.out submit_job.sh
+	qsub submit_job.sh
+a.out: placas.c
+	mpicc placas.c
+clean:
+	rm -f a.out 0.txt 1.txt 2.txt 3.txt
