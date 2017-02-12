@@ -118,7 +118,7 @@ int main(int argc, char **argv){
 
   file1=fopen(buf,"w");
 
-  for(i=0;i<M;i++){
+  for(i=0;i<col+1;i++){
     for(j=0;j<M;j++){
       fprintf(file1,"%f ",u1[i][j]);
     }
