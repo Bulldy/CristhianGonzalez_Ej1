@@ -12,6 +12,8 @@
 
 int main(int argc, char **argv){
   int rank,size, source, destination, in_number, out_number;
+  MPI_Request send_request, recv_request;
+  MPI_Status status;
 
   // Initialize MPI environment
   MPI_Init(NULL, NULL);
@@ -70,6 +72,8 @@ int main(int argc, char **argv){
   int k;
   double number;
   
+  MPI_Barrier(MPI_COMM_WORLD);
+  
   for(k=0;k<N;k++){
     for(j=1;j<M;j++){
       if(rank!=size-1){
@@ -87,7 +91,9 @@ int main(int argc, char **argv){
 	u1[col+1][j]=number;
       }
     }
-   
+    
+    MPI_Barrier(MPI_COMM_WORLD);
+
     for(i=1;i<col+1;i++){
       for(j=1;j<M;j++){
 	if(i+start==iu && j>=j1 && j<=j2){
@@ -107,9 +113,10 @@ int main(int argc, char **argv){
 	u1[i][j]=u2[i][j];
       }
     }
+    MPI_Barrier(MPI_COMM_WORLD);
   }
   
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
   printf("Empezar a escribir archivos: Proceso %d \n",rank);
   // Write to files
   FILE *file1;
@@ -118,8 +125,8 @@ int main(int argc, char **argv){
 
   file1=fopen(buf,"w");
 
-  for(i=0;i<col+1;i++){
-    for(j=0;j<M;j++){
+  for(j=0;j<M;j++){
+    for(i=0;i<col+1;i++){
       fprintf(file1,"%f ",u1[i][j]);
     }
     fprintf(file1,"\n");
