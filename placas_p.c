@@ -28,8 +28,8 @@ int main(int argc, char **argv){
   u2=(double **)malloc(M*sizeof(double *));
   int i;
   for(i=0;i<M;i++){
-    u1[i]=(double *)malloc(col*sizeof(double));
-    u2[i]=(double *)malloc(col*sizeof(double));
+    u1[i]=(double *)malloc((col+2)*sizeof(double));
+    u2[i]=(double *)malloc((col+2)*sizeof(double));
   } 
 
   // Define the indexes for which the potential will be held constant
@@ -46,11 +46,12 @@ int main(int argc, char **argv){
   if(rank==(size-1)){
     end=(rank+1)*(M/size);
   }
+
   printf("I am processor %d, and I have columns %d to %d \n",rank,start,end);
 
   // Initialize the matrices with the corresponding potentials
   int j;
-  for(i=0;i<col;i++){
+  for(i=0;i<col+1;i++){
     for(j=0;j<M;j++){
       u2[i][j]=0;
       if(i+start==iu && j>=j1 && j<=j2){
@@ -64,9 +65,52 @@ int main(int argc, char **argv){
       }
     }
   }
-
+ 
+  // Start of the relaxation method
+  int k;
+  double number;
   
+  for(k=0;k<N;k++){
+    for(j=1;j<M;j++){
+      if(rank!=size-1){
+	number=u1[col][j];
+        MPI_Send(&number, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD);
+      }
+      if(rank!=0){
+	MPI_Recv(&number, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	u1[0][j]=number;
+	number=u1[1][j];
+	MPI_Send(&number, 1, MPI_DOUBLE, rank-1, 0, MPI_COMM_WORLD);
+      }
+      if(rank!=size-1){
+	MPI_Recv(&number, 1, MPI_DOUBLE, rank+1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	u1[col+1][j]=number;
+      }
+    }
+   
+    for(i=1;i<col+1;i++){
+      for(j=1;j<M;j++){
+	if(i+start==iu && j>=j1 && j<=j2){
+	  u2[i][j]=-1*V0/2;
+	}
+	else if(i+start==id && j>=j1 && j<=j2){
+	  u2[i][j]=V0/2;
+	}
+	else{
+	  u2[i][j]=0.25*(u1[i+1][j]+u2[i-1][j]+u1[i][j+1]+u2[i][j-1]);
+	}
+      }
+    }
+    
+    for(i=0;i<col+2;i++){
+      for(j=0;j<M;j++){
+	u1[i][j]=u2[i][j];
+      }
+    }
+  }
   
+  MPI_Barrier(MPI_COMM_WORLD);
+  printf("Empezar a escribir archivos: Proceso %d \n",rank);
   // Write to files
   FILE *file1;
   char buf[10];
@@ -82,6 +126,7 @@ int main(int argc, char **argv){
   }
   fclose(file1);
 
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // Finalize the MPI environment
   MPI_Finalize();
